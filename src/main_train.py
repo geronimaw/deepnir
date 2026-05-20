@@ -50,7 +50,7 @@ def save_model_and_indices(model, selected_indices, models_dir: Path, stem: str)
 
 # ─────────────────────────── data loading ───────────────────────────────────
 
-def load_dataset(path: Path, sheet_name: str) -> tuple[pd.DataFrame, pd.DataFrame | None]:
+def load_dataset(path: Path, sheet_name: str):
     """Load train/val DataFrames from an Excel sheet."""
     if sheet_name == "DATASET":
         data     = pd.read_excel(path, sheet_name=sheet_name)
