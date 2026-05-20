@@ -6,6 +6,13 @@
 /*.ipynb
 /VRAI.zip
 /__pycache__
+/VRAI
+/VRAI2
+/explainability
+/features
+/models
+/preprocessing
+/utils
 
 /src/token.txt
 /src/venv_nir
