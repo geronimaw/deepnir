@@ -1,0 +1,9 @@
+/token.txt
+/venv_nir
+/outputs_*/
+/trained_*/
+/valutare_cancellare
+/create_curves.py
+/data_inspection.py
+/test_model.py
+/*.ipynb
