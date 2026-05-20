@@ -18,7 +18,7 @@ out_path = ROOT / "src/deep_nir/VRAI2"
 in_path = ROOT / "data/raw/Grain"
 
 
-def main(dataset, path, beams_step):
+def main(dataset, path, beams_step, train_on_X_first_freq):
     # Load training and validation data from Excel sheets
     for sheet_name in sheet_names:
         if sheet_name == "DATASET":
@@ -50,13 +50,14 @@ def main(dataset, path, beams_step):
                 y_col_act = y_col
             
             # Training set
-            X_train[y_col_act], y_train[y_col_act] = get_x_y_labels(train_data, y_col)
+            X_train[y_col_act], y_train[y_col_act] = get_x_y_labels(train_data, y_col, train_on_X_first_freq)
 
             # Validation set
             if dataset == "08_CornGrain":
-                X_val[y_col_act], y_val[y_col_act] = get_x_y_labels(val_data, y_col if sheet_name != "DATASET" else y_columns["VALID"][col_idx])
+                X_val[y_col_act], y_val[y_col_act] = get_x_y_labels(
+                    val_data, y_col if sheet_name != "DATASET" else y_columns["VALID"][col_idx], train_on_X_first_freq)
             else:
-                X_val[y_col_act], y_val[y_col_act] = get_x_y_labels(val_data, y_col)
+                X_val[y_col_act], y_val[y_col_act] = get_x_y_labels(val_data, y_col, train_on_X_first_freq)
             # remove all rows with 0 in y_train and y_val
             mask_train = y_train[y_col_act] != 0
             mask_val = y_val[y_col_act] != 0
@@ -84,6 +85,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train SVM models on NIR data.")
     parser.add_argument("--beams_step", type=int, default=1, help="Step size for grouping wavelengths. Use 1 for no grouping.")
     parser.add_argument("--multi_dataset", action="store_true", help="If set, train a single model on all datasets. Otherwise, train separate models for each directory.")
+    parser.add_argument("--train_on_X_first_freq", type=int, default=-1, help="Select the first X frequencies on which to train the model.")
 
     args = parser.parse_args()
 
@@ -104,14 +106,18 @@ if __name__ == "__main__":
             if file.endswith("DATASET.xlsx"):
                 print(f"\nProcessing dataset: {dataset_name}, file: {file}")
                 X_train_all[dataset_name], X_val_all[dataset_name], y_train_all[dataset_name], y_val_all[dataset_name] = main(
-                    dir, os.path.join(dir_path, file), args.beams_step)
+                    dir, os.path.join(dir_path, file), args.beams_step, args.train_on_X_first_freq)
 
     if args.multi_dataset:
         print("--- Training a unified SVM model on all families ---")
         # Define output paths for multi-dataset training
-        output_csv = os.path.join(out_path, "outputs", "svm_performance", "multi_dataset_training_svm")
+        output_csv = os.path.join(out_path, "trained_svm", 
+                                  f"{args.train_on_X_first_freq}freqs" if args.train_on_X_first_freq > 0 else "all_freqs",
+                                  "multi_dataset_training_svm")
         os.makedirs(output_csv, exist_ok=True)
-        out_models_path = os.path.join(out_path, "outputs", "svm_trained", "multi_dataset_training_svm")
+        out_models_path = os.path.join(out_path, "trained_svm", 
+                                       f"{args.train_on_X_first_freq}freqs" if args.train_on_X_first_freq > 0 else "all_freqs",
+                                       "multi_dataset_training_svm")
         os.makedirs(out_models_path, exist_ok=True)
 
         # Train a single model on all datasets
@@ -170,9 +176,13 @@ if __name__ == "__main__":
         print("--- Training SVM models for each family ---")
         for dataset_name in X_train_all:
             # Define output paths for separate training
-            output_csv = os.path.join(out_path, "outputs", "svm_performance", dataset_name)
+            output_csv = os.path.join(out_path, "outputs_std_PEC_svm", 
+                                      f"{args.train_on_X_first_freq}freqs" if args.train_on_X_first_freq > 0 else "",
+                                      dataset_name)
             os.makedirs(output_csv, exist_ok=True)
-            out_models_path = os.path.join(out_path, "outputs", "svm_trained", dataset_name)
+            out_models_path = os.path.join(out_path, "outputs_std_PEC_svm", 
+                                           f"{args.train_on_X_first_freq}freqs" if args.train_on_X_first_freq > 0 else "",
+                                           dataset_name)
             os.makedirs(out_models_path, exist_ok=True)
 
             # Train separate models for each directory
@@ -198,21 +208,3 @@ if __name__ == "__main__":
                 with open(os.path.join(out_models_path, f"{y_col}_regr_selected_freq.csv"), 'w') as fil:
                     wr = csv.writer(fil)
                     wr.writerow(results["selected_indices"])
-
-                # Train classification model (only for DM or SS)
-                if y_col == "DM" or y_col == "SS":
-                    print(f"\nTraining SVM classification model for dataset: {dataset_name}, target: {y_col}")
-                    train_dirs = pd.Series([dataset_name] * len(X_train), name="dataset_label")
-                    val_dirs = pd.Series([dataset_name] * len(X_val), name="dataset_label")
-
-                    results = train_svm_classif(
-                        X_train, X_val, train_dirs, val_dirs,
-                        f"_fam_classif", output_csv, args.beams_step
-                    )
-
-                    model_out_path = os.path.join(out_models_path, f"class.joblib")
-                    dump(results["model"], model_out_path)
-
-                    with open(os.path.join(out_models_path, f"class_selected_freq.csv"), 'w') as fil:
-                        wr = csv.writer(fil)
-                        wr.writerow(results["selected_indices"])

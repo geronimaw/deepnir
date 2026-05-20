@@ -21,7 +21,7 @@ col_names_switch = {
 }
 
 # Select features and targets
-def get_x_y_labels(data, y_column):
+def get_x_y_labels(data, y_column, first_freq):
     # risolvi nome colonna y
     if y_column not in data.columns:
         matches = [k for k, v in col_names_switch.items() if v == y_column]
@@ -36,5 +36,9 @@ def get_x_y_labels(data, y_column):
 
     # risolvi colonne X (vedi sotto: il tuo slicing '1100':'1800' dipende dai nomi!)
     x_columns = data.loc[:, "1100":"1800"].columns.tolist()
+    if first_freq > 0:
+        print(f"\tCropping spectrum to the first {first_freq} frequencies")
+        x_columns = x_columns[:first_freq]
+        print(f"\t\tusing {len(x_columns)} frequencies")
     X = data[x_columns]
     return X, y
