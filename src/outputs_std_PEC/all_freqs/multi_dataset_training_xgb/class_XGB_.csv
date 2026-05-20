@@ -1,0 +1,2 @@
+val_Accuracy,train_Accuracy,train_Precision_0,train_Recall_0,train_F1-Score_0,train_Precision_1,train_Recall_1,train_F1-Score_1,train_Precision_2,train_Recall_2,train_F1-Score_2,train_Precision_3,train_Recall_3,train_F1-Score_3,train_Precision_4,train_Recall_4,train_F1-Score_4
+0.9942857142857143,0.9922680412371134,0.9895287958115183,0.9947368421052631,0.9921259842519685,1.0,0.9826589595375722,0.9912536443148688,1.0,1.0,1.0,1.0,1.0,1.0,0.9844357976653697,0.9921568627450981,0.98828125
