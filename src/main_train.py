@@ -66,7 +66,7 @@ def load_dataset(path: Path, sheet_name: str):
 
 def split_train_val(
     data: pd.DataFrame,
-    val_data: pd.DataFrame | None,
+    val_data: pd.DataFrame,
     random_state: int = 42,
     frac: float = 0.7,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
