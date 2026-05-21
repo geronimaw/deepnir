@@ -237,40 +237,38 @@ def train_multi_dataset(
 
 # ────────────────────── per-family training ─────────────────────────────────
 
-DATASETS_TO_TRAIN = {"Barley", "Soybean"}  # TODO: remove filter when ready
-
 
 def train_per_family(
     X_train_all, X_val_all, y_train_all, y_val_all,
     freq_tag: str,
     beams_step: int,
     model_type: str,
+    family: str, 
 ) -> None:
     print("─── Training a model for each family ───")
     train_regr_fn, _ = get_model_fns(model_type)
 
     for dataset_name in X_train_all:
-        if dataset_name not in DATASETS_TO_TRAIN:
-            continue
 
-        csv_dir, models_dir = build_output_dirs(
-            OUT_PATH, freq_tag, dataset_name, model_type
-        )
-        # One sub-folder per dataset inside the models dir
-        dataset_models_dir = models_dir / dataset_name
-        dataset_models_dir.mkdir(parents=True, exist_ok=True)
+        if family != 'all' and dataset_name == family:
+            csv_dir, models_dir = build_output_dirs(
+                OUT_PATH, freq_tag, dataset_name, model_type
+            )
+            # One sub-folder per dataset inside the models dir
+            dataset_models_dir = models_dir / dataset_name
+            dataset_models_dir.mkdir(parents=True, exist_ok=True)
 
-        for y_col, X_tr in X_train_all[dataset_name].items():
-            X_vl = X_val_all[dataset_name][y_col]
-            y_tr = y_train_all[dataset_name][y_col]
-            y_vl = y_val_all[dataset_name][y_col]
+            for y_col, X_tr in X_train_all[dataset_name].items():
+                X_vl = X_val_all[dataset_name][y_col]
+                y_tr = y_train_all[dataset_name][y_col]
+                y_vl = y_val_all[dataset_name][y_col]
 
-            if X_tr.empty or X_vl.empty:
-                continue
+                if X_tr.empty or X_vl.empty:
+                    continue
 
-            train_regression(X_tr, X_vl, y_tr, y_vl, y_col,
-                             csv_dir, dataset_models_dir, beams_step,
-                             train_regr_fn, model_type, dataset_name)
+                train_regression(X_tr, X_vl, y_tr, y_vl, y_col,
+                                csv_dir, dataset_models_dir, beams_step,
+                                train_regr_fn, model_type, dataset_name)
 
 
 # ─────────────────────────────── entry point ────────────────────────────────
@@ -292,6 +290,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--train_on_X_first_freq", type=int, default=-1,
         help="Use only the first N frequencies for training (-1 = all).",
+    )
+    parser.add_argument(
+        "--family", type=str, default="all",
+        help="What family to train on (default: 'all' families, one model each).",
     )
     return parser.parse_args()
 
@@ -337,5 +339,5 @@ if __name__ == "__main__":
     else:
         train_per_family(
             X_train_all, X_val_all, y_train_all, y_val_all,
-            tag, args.beams_step, args.model_type,
+            tag, args.beams_step, args.model_type, args.family
         )
