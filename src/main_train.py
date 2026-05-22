@@ -14,7 +14,7 @@ from utils import y_columns, get_x_y_labels, col_names_switch
 ROOT = Path(__file__).parent
 
 OUT_PATH = ROOT / "outputs"
-IN_PATH  = ROOT / ".." / "raw" / "Grain"
+IN_PATH  = ROOT / ".." / ".." / "raw" / "Grain"
 
 SUPPORTED_MODELS = ("xgb", "svm")
 
@@ -94,6 +94,8 @@ def prepare_splits(
     print("\tTarget columns:", col_names)
 
     X_train, X_val, y_train, y_val = {}, {}, {}, {}
+    if train_on_X_first_freq > 0:
+        print(f"\tCropping spectrum to the first {train_on_X_first_freq} frequencies")
 
     for col_idx, y_col in enumerate(col_names):
         y_col_act = y_col if y_col in y_columns["DATASET"] else col_names_switch[y_col]
@@ -213,7 +215,7 @@ def train_multi_dataset(
 ) -> None:
     print("─── Training a unified model on all families ───")
     train_regr_fn, train_class_fn = get_model_fns(model_type)
-    sub = f"multi_dataset_training_{model_type}"
+    sub = f"multi_dataset_training"
     csv_dir, models_dir = build_output_dirs(OUT_PATH, freq_tag, sub, model_type)
 
     first_ds = next(iter(y_train_all))
@@ -227,12 +229,12 @@ def train_multi_dataset(
                          csv_dir, models_dir, beams_step,
                          train_regr_fn, model_type, sub)
 
-        if y_col in ("DM", "SS"):
-            labels_tr = make_dataset_labels(X_train_all, y_col)
-            labels_vl = make_dataset_labels(X_val_all,   y_col)
-            train_classification(X_tr, X_vl, labels_tr, labels_vl,
-                                 csv_dir, models_dir, beams_step,
-                                 train_class_fn, model_type, sub)
+        # if y_col in ("DM", "SS"):
+        #     labels_tr = make_dataset_labels(X_train_all, y_col)
+        #     labels_vl = make_dataset_labels(X_val_all,   y_col)
+        #     train_classification(X_tr, X_vl, labels_tr, labels_vl,
+        #                          csv_dir, models_dir, beams_step,
+        #                          train_class_fn, model_type, sub)
 
 
 # ────────────────────── per-family training ─────────────────────────────────
@@ -249,8 +251,15 @@ def train_per_family(
     train_regr_fn, _ = get_model_fns(model_type)
 
     for dataset_name in X_train_all:
+        
+        do_train = False
+        if family == 'all':
+            do_train = True
 
         if family != 'all' and dataset_name == family:
+            do_train = True
+        
+        if do_train:
             csv_dir, models_dir = build_output_dirs(
                 OUT_PATH, freq_tag, dataset_name, model_type
             )

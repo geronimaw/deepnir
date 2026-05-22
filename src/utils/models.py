@@ -661,3 +661,100 @@ def train_svm_classif(X_train, X_val, y_train, y_val, y_col, outpath, beams_step
     "model": clf.best_estimator_,
     "selected_indices": selected_indices
     }
+
+
+def test_xgb(X_val, y_val, y_col, final_reg, outpath, beams_step):
+        
+    if isinstance(X_val, pd.DataFrame):
+        X_val = X_val.to_numpy()
+    if isinstance(y_val, pd.DataFrame) or isinstance(y_val, pd.Series):
+        y_val = y_val.to_numpy()
+
+    if not os.path.exists(outpath):
+        os.makedirs(outpath, exist_ok=True)
+
+    # ===== Validation metrics =====
+    preds = final_reg.predict(X_val)
+    y_val_array = y_val.ravel()
+
+    rmse = np.sqrt(((preds - y_val_array) ** 2).mean())
+    print(f"Validation RMSE: {rmse}")
+    train_dict = {}
+    
+    metrics = compute_regression_metrics(y_val_array, preds)
+    for key, value in metrics.items():
+        train_dict[f"val_{key}_{y_col}"] = value
+    
+    print("\n\nsaving to", outpath)
+    if outpath is not None:
+        plot_predictions(
+            y_val_array,
+            preds,
+            y_col,
+            "xgb",
+            "validation",
+            outpath,
+            beams_step
+        )
+
+    # ===== Save CSV =====
+    df_output = pd.DataFrame([train_dict])
+    outname = f"{y_col}_regr_XGB_{'each' + str(beams_step) if beams_step > 1 else ''}.csv"
+
+    if outpath is not None:
+        df_output.to_csv(os.path.join(outpath, outname), index=False)
+    
+    return {
+        "model": final_reg,
+        "y_val": y_val_array,
+        "predictions": preds,
+        "metrics": metrics,
+    }
+
+    
+def test_svm(X_val, y_val, y_col, final_reg, outpath, beams_step):
+    
+    # ===== Validation metrics =====
+    preds = final_reg.predict(X_val)
+    y_val_array = y_val.ravel()
+
+    rmse = np.sqrt(((preds - y_val_array) ** 2).mean())
+    print(f"Validation RMSE: {rmse}")
+    train_dict = {}
+    
+    metrics = compute_regression_metrics(y_val_array, preds)
+    for key, value in metrics.items():
+        train_dict[f"val_{key}_{y_col}"] = value
+
+    if outpath is not None:
+        plot_predictions(
+            y_val_array,
+            preds,
+            y_col,
+            "xgb",
+            "validation",
+            outpath,
+            beams_step
+        )
+
+    # ===== Save CSV =====
+    df_output = pd.DataFrame([train_dict])
+    outname = f"{y_col}_regr_XGB_{'each' + str(beams_step) if beams_step > 1 else ''}.csv"
+
+    if outpath is not None:
+        df_output.to_csv(os.path.join(outpath, outname), index=False)
+
+        plot_predictions(
+            f"{y_col}_regr",
+            "xgb",
+            "train",
+            outpath,
+            beams_step=beams_step
+        )
+    
+    return {
+        "model": final_reg,
+        "y_val": y_val_array,
+        "predictions": preds,
+        "metrics": metrics,
+    }
