@@ -9,8 +9,8 @@ from joblib import dump
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
-from utils import y_columns, get_x_y_labels, col_names_switch
-from utils import test_xgb, test_svm
+from deepnir.utils import y_columns, get_x_y_labels, col_names_switch
+from deepnir.utils import test_xgb, test_svm
 
 ROOT = Path(__file__).parent
 

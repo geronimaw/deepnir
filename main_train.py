@@ -8,8 +8,8 @@ from joblib import dump
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
-from utils import train_xgb_regr, train_xgb_class, train_svm_regr, train_svm_classif
-from utils import y_columns, get_x_y_labels, col_names_switch
+from deepnir.utils import train_xgb_regr, train_xgb_class, train_svm_regr, train_svm_classif
+from deepnir.utils import y_columns, get_x_y_labels, col_names_switch
 
 ROOT = Path(__file__).parent
 
