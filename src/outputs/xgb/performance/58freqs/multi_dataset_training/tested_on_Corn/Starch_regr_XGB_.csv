@@ -1,2 +1,0 @@
-val_SEP_Starch,val_std_SEP_Starch,val_Bias_Starch,val_SEPC_Starch,val_R2_Starch,val_Slope_Starch,val_N_Starch,val_Min_True_Starch,val_Max_True_Starch,val_Avg_True_Starch,val_Std_True_Starch,val_Min_Pred_Starch,val_Max_Pred_Starch,val_Avg_Pred_Starch,val_Std_Pred_Starch
-0.08934471953006012,9.479727384874753,0.090870686646931,0.080899567799928,0.8931080890559389,0.8904752976199848,45,70.5999985,75.0400009,73.06263650153409,0.9040284659072556,70.56882,74.413445,72.97177,0.8469636
