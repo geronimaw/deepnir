@@ -1,0 +1,2 @@
+val_SEP_Protein,val_std_SEP_Protein,val_Bias_Protein,val_SEPC_Protein,val_R2_Protein,val_Slope_Protein,val_N_Protein,val_Min_True_Protein,val_Max_True_Protein,val_Avg_True_Protein,val_Std_True_Protein,val_Min_Pred_Protein,val_Max_Pred_Protein,val_Avg_Pred_Protein,val_Std_Pred_Protein
+0.050855168314527494,10.78406608021936,-0.00853310497114508,0.05078069957315964,0.8649531904696377,0.8410023782421802,45,8.0699997,11.3800001,9.185572530777822,0.6067998505237622,8.357984,11.244852,9.194105,0.5484255
