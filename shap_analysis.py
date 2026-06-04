@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
-from main_test import main
+from deepnir.test import main
 
 ROOT = Path(__file__).parent
 
