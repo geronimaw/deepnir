@@ -22,8 +22,8 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from deepnir.utils.preprocessing import SNV, SavitzkyGolaySmooth, MSC
-from deepnir.utils.visual import plot_predictions, plot_cm
+from utils.preprocessing import SNV, SavitzkyGolaySmooth, MSC
+from utils.visual import plot_predictions, plot_cm
 
 
 # Compute regression metrics
