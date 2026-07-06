@@ -6,8 +6,9 @@ import pandas as pd
 from shap_analysis import get_models, MODELS_PATH, ROOT
 
 DATA_PATH = "/Users/u0186653/Desktop/research/dingen/raw/Grain"
+model_name = "svm"
 training_set = '58freqs'
-OUT_PATH = ROOT / "outputs" / "xgb" 
+OUT_PATH = ROOT / "outputs" / model_name
 
 # Esecuzione delle previsioni
 def esegui_previsioni(inputs, models, samples_temp):
