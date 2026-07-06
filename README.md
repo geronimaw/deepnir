@@ -2,9 +2,8 @@
 Questa repository contiene il codice per l'addestramento, la valutazione e l'analisi di interpretabilità (SHAP) e ripetibilità di modelli predittivi (XGBoost e SVM) basati su dati spettrali NIR. Il progetto include pipeline di preprocessing, selezione delle bande spettrali e valutazione della robustezza in diverse condizioni di temperatura.
 
 📁 Struttura del Progetto
-text
+```text
 
-Copy
 ├── __init__.py
 ├── utils/                  # Moduli di utilità condivisi
 │   ├── data.py             # Caricamento, pulizia e gestione dei dataset
@@ -32,6 +31,7 @@ Copy
 ├── plot_test_metrics.ipynb # Notebook per visualizzare le metriche di test
 ├── test.py                 # Script di test rapido
 └── requirements.txt        # Dipendenze Python necessarie
+```
 
 ## Prerequisiti
 Assicurati di avere Python 3.8 o superiore installato. Installa le dipendenze necessarie:
