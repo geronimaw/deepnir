@@ -3,7 +3,6 @@ Questa repository contiene il codice per l'addestramento, la valutazione e l'ana
 
 📁 Struttura del Progetto
 ```text
-
 ├── __init__.py
 ├── utils/                  # Moduli di utilità condivisi
 │   ├── data.py             # Caricamento, pulizia e gestione dei dataset
