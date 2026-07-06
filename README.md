@@ -47,13 +47,6 @@ shap
 pandas
 openpyxl (per la lettura/scrittura di Excel)
 matplotlib, seaborn (per la visualizzazione)
-⚙️ Configurazione
-Prima di eseguire gli script, assicurati che:
-
-La variabile d'ambiente DATA_PATH punti alla cartella dei dati grezzi.
-La variabile d'ambiente MODELS_PATH e OUT_PATH siano configurate correttamente (o modificate direttamente nel codice se necessario).
-I file Excel dei risultati (.xlsx) siano presenti nelle sottocartelle di outputs/ se si desidera visualizzare i risultati pre-calcolati.
-📊 Esecuzione degli Script
 
 ## 1. Addestramento Modelli
 Per addestrare i modelli (XGBoost e SVM) con selezione delle bande e preprocessing:
