@@ -15,12 +15,14 @@ from deepnir.test import main
 
 ROOT = Path(__file__).parent
 
+training_set = '58freqs'
+model_name = 'svm'
+
 OUT_PATH = ROOT / "outputs"
 DATA_PATH  = ROOT / ".." / "raw" / "Grain"
-MODELS_PATH  = ROOT / "outputs" / "xgb" / "trained_models"
-OUT_PATH = ROOT / "outputs" / "xgb" / "shap_analysis"
+MODELS_PATH  = ROOT / "outputs" / model_name / "trained_models"
+OUT_PATH = ROOT / "outputs" / model_name / "shap_analysis"
 
-training_set = "all_freqs"
 nutrients = ['ADF', 'Ash', 'Crude Fat', 'Crude Fib.', 'DM', 'NDF', 'Protein', 'Starch']
 
 
@@ -86,13 +88,17 @@ if __name__ == "__main__":
                 ) = main(dir_entry.name, sheet_names, file, 1, 58 if '58' in training_set else -1)
     
     models, sel_freqs = get_models(models_path)
+
+    # Identify if a unified model exists
+    unified_model_name = "multi_dataset_training"
+    has_unified_model = unified_model_name in models
+
+    # Pre-calculate the list of all crops available in the loaded data
+    all_crops = list(X_train_all.keys())
     
     for crop, nutrient in models.items():
-        # Salta immediatamente il crop non desiderato prima di fare qualsiasi operazione
-        if crop == "multi_dataset_training":
-            continue
-
-        # Crea la cartella di output una sola volta per crop
+        
+        # Determine the output path
         output_path = OUT_PATH / training_set / crop
         output_path.mkdir(parents=True, exist_ok=True)
         
@@ -103,18 +109,79 @@ if __name__ == "__main__":
             if model is None:
                 continue
                 
-            # Assegnazione unica delle variabili di training/test
-            X_background = X_train_all[crop][nutr]
-            X_test = X_val_all[crop][nutr]
+            print(f"\nProcessing SHAP for: {crop} | Nutrient: {nutr}")
 
+            # --- DATA PREPARATION LOGIC ---
+            if crop == unified_model_name and has_unified_model:
+                # CASE: Unified Model
+                # Concatenate all crops' data into single DataFrames
+                X_background_list = []
+                X_test_list = []
+                
+                print("\t-> Merging data from all crops for unified model...")
+                
+                for c in all_crops:
+                    if nutr in X_train_all[c]:
+                        X_background_list.append(X_train_all[c] [nutr])
+                    if nutr in X_val_all[c]:
+                        X_test_list.append(X_val_all[c] [nutr])
+                
+                if not X_background_list or not X_test_list:
+                    print(f"\t-> ERROR: No data found for nutrient '{nutr}' in any crop. Skipping SHAP.")
+                    continue
+
+                # Concatenate along rows (axis=0)
+                # This assumes all DataFrames have the same columns (features)
+                X_background = pd.concat(X_background_list, ignore_index=True)
+                X_test = pd.concat(X_test_list, ignore_index=True)
+                
+                # Ensure column order is consistent (optional but good practice)
+                # X_background = X_background.sort_index(axis=1)
+                # X_test = X_test.sort_index(axis=1)
+
+            else:
+                # CASE: Single Crop Model
+                if crop not in X_train_all or nutr not in X_train_all[crop]:
+                    print(f"\t-> WARNING: Data for {crop}/{nutr} not found. Skipping.")
+                    continue
+
+                X_background = X_train_all[crop] [nutr]
+                X_test = X_val_all[crop] [nutr]
+            
+            X_test_selected = X_test
+            feature_names_target = X_test.columns#[30:]
+            
             # Calcolo dei valori SHAP
-            best_model = model.best_estimator_.named_steps['model']
-            explainer = shap.TreeExplainer(best_model, data=X_background)
-            shap_values = explainer(X_test)
+            if model_name == "xgb":
+                best_model = model.best_estimator_.named_steps['model']
+                explainer = shap.TreeExplainer(best_model, data=X_background)
+            else:
+                if hasattr(model, 'named_steps'):
+                    best_model = model.named_steps['model']
+                else:
+                    # Fallback if it's a dict or other structure
+                    best_model = model['model']
+                
+                selector = model.named_steps['band_select']
+
+                selected_mask = selector.support_
+                original_features = X_background.columns.tolist()
+                X_background_selected = X_background.loc[:, selected_mask]
+                X_test_selected = X_test.loc[:, selected_mask]
+
+                feature_names_target = X_background_selected.columns.tolist()
+
+                K = 100  # Target number of background samples
+                if len(X_background_selected) > K:
+                    print(f"\t-> Summarizing {len(X_background_selected)} background samples to {K} using kmeans...")
+                    X_background_selected = shap.kmeans(X_background_selected, K)
+
+                explainer = shap.KernelExplainer(best_model.predict, X_background_selected, nsamples=500)
+
+            shap_values = explainer(X_test_selected)
             
             # Estrazione globale delle feature (dalla 30 in poi)
             shap_values_target = shap_values.values#[:, 30:]
-            feature_names_target = X_test.columns#[30:]
             
             # --- PLOT INDIVIDUALE PER NUTRIENTE (FEATURE >= 30) ---
             if shap_values_target.shape[1] > 0:
